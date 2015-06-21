@@ -1,0 +1,99 @@
+---
+title: "PML_Course"
+author: "Joseph Raj A"
+date: "Sunday, June 21, 2015"
+output: html_document
+---
+Installed required packages like Caret, randomForest and rpart
+install.packages("caret")
+install.packages("randomForest")
+install.packages("rpart")  
+
+```{r}
+library(caret)
+library(randomForest)
+library(rpart)
+```
+
+Overall seed for reproduceability has been set
+```{r}
+set.seed(1234)
+```
+
+Accessing the given URL and saving both datasets as training and testing.
+```{r}
+training_Url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+testing_Url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+training <- read.csv(url(training_Url), na.strings=c("NA","DIV/0!",""))
+testing <- read.csv(url(testing_Url), na.strings=c("NA","DIV/0!",""))
+```
+
+After Analyzing the data, Columns with values as string "NA" / "DIV/0!" / "" are not required for sampling and hence,these will be changed to NA and then deleted as its not required.
+```{r}
+training <-training[,colSums(is.na(training)) == 0]
+testing <-testing[,colSums(is.na(testing)) == 0]
+```
+
+The First 7 columns user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window and num_window which seem to be irrelevant variables for this project, hence deleted all these variables (1 to 7 columns)
+```{r}
+training <- training[,-c(1:7)]
+testing <- testing[,-c(1:7)]
+```
+
+Checking the dataset
+```{r}
+dim(training)
+dim(testing)
+```
+
+Partioning the data 80% training 20% testing and lets plot to see how the data behaves.
+```{r}
+samples <- createDataPartition(y=training$classe, p=0.80, list=FALSE)
+trainingset <- training[samples, ] 
+testingset <- training[-samples, ]
+```
+
+Checking the sample datasets
+```{r}
+dim(trainingset)
+dim(testingset)
+```
+
+Applying the random Forest Algorithm on training dataset
+```{r}
+rfmodel <- randomForest(classe ~. , data=trainingset, method="class")
+```
+
+Based on the built model, predicting the testing dataset
+```{r}
+prediction <- predict(rfmodel, testingset, type = "class")
+```
+
+Running the ConfusionMatrix on the prediction to see the results.
+```{r}
+confusionMatrix(prediction, testingset$classe)
+```
+
+#Decision
+
+##Accuracy for Random Forest model was 0.998 (95% CI: (0.996, 0.9991)). The expected out-of-sample error is estimated at 0.002, or 0.2%. The expected out-of-sample error is calculated as 1 - accuracy for predictions made against the cross-validation set. 
+
+##Our Test data set comprises 20 cases. With an accuracy above 99% on our cross-validation data, we can expect that very few, or none, of the test samples will be missclassified
+
+##Running the prediction model on original Testing dataset using Random Forest algorithm to get the desired outputs for submission.
+
+```{r}
+finaloutput <- predict(rfmodel, testing, type="class")
+finalOutput
+```
+
+#Preparing the files for submission
+```{r}
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+```
