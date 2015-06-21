@@ -67,8 +67,9 @@ img {
 </div>
 
 
-<p>Installed required packages like Caret, randomForest and rpart</p>
-<p>install.packages(“caret”) install.packages(“randomForest”) install.packages(“rpart”)</p>
+<div id="setup-with-the-installation" class="section level1">
+<h1>Setup with the installation</h1>
+<p>Installed required packages like Caret, randomForest and rpart install.packages(“caret”) install.packages(“randomForest”) install.packages(“rpart”)</p>
 <pre class="r"><code>library(caret)</code></pre>
 <pre><code>## Loading required package: lattice
 ## Loading required package: ggplot2</code></pre>
@@ -79,6 +80,9 @@ img {
 <pre class="r"><code>library(rpart)</code></pre>
 <p>Overall seed for reproduceability has been set</p>
 <pre class="r"><code>set.seed(1234)</code></pre>
+</div>
+<div id="data-access-cleansing" class="section level1">
+<h1>Data Access &amp; Cleansing</h1>
 <p>Accessing the given URL and saving both datasets as training and testing.</p>
 <pre class="r"><code>training_Url &lt;- &quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv&quot;
 testing_Url &lt;- &quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;
@@ -90,21 +94,25 @@ testing &lt;-testing[,colSums(is.na(testing)) == 0]</code></pre>
 <p>The First 7 columns user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window and num_window which seem to be irrelevant variables for this project, hence deleted all these variables (1 to 7 columns)</p>
 <pre class="r"><code>training &lt;- training[,-c(1:7)]
 testing &lt;- testing[,-c(1:7)]</code></pre>
-<p>Check the dataset</p>
+<p>Checking the dataset</p>
 <pre class="r"><code>dim(training)</code></pre>
 <pre><code>## [1] 19622    53</code></pre>
 <pre class="r"><code>dim(testing)</code></pre>
 <pre><code>## [1] 20 53</code></pre>
-<p>Partioning the data 80% training 20% testing and lets plot to see how the data behaves.</p>
+</div>
+<div id="partioning-the-data-80-training-20-testing-and-predict-to-see-how-the-data-behaves." class="section level1">
+<h1>Partioning the data 80% training 20% testing and predict to see how the data behaves.</h1>
 <pre class="r"><code>samples &lt;- createDataPartition(y=training$classe, p=0.80, list=FALSE)
 trainingset &lt;- training[samples, ] 
 testingset &lt;- training[-samples, ]</code></pre>
-<p>Check the dataset</p>
+<p>Checking the sample datasets</p>
 <pre class="r"><code>dim(trainingset)</code></pre>
 <pre><code>## [1] 15699    53</code></pre>
 <pre class="r"><code>dim(testingset)</code></pre>
 <pre><code>## [1] 3923   53</code></pre>
-<p>Applying the random Forest Algorithm on training dataset</p>
+</div>
+<div id="applying-the-random-forest-algorithm-on-training-dataset" class="section level1">
+<h1>Applying the random Forest Algorithm on training dataset</h1>
 <pre class="r"><code>rfmodel &lt;- randomForest(classe ~. , data=trainingset, method=&quot;class&quot;)</code></pre>
 <p>Based on the built model, predicting the testing dataset</p>
 <pre class="r"><code>prediction &lt;- predict(rfmodel, testingset, type = &quot;class&quot;)</code></pre>
@@ -141,6 +149,24 @@ testingset &lt;- training[-samples, ]</code></pre>
 ## Detection Rate         0.2845   0.1930   0.1731   0.1637   0.1838
 ## Detection Prevalence   0.2847   0.1942   0.1736   0.1637   0.1838
 ## Balanced Accuracy      0.9998   0.9979   0.9960   0.9992   1.0000</code></pre>
+</div>
+<div id="decision" class="section level1">
+<h1>Decision</h1>
+<p>Accuracy for Random Forest model was 0.998 (95% CI: (0.996, 0.9991)). The expected out-of-sample error is estimated at 0.002, or 0.2%. The expected out-of-sample error is calculated as 1 - accuracy for predictions made against the cross-validation set.</p>
+<p>Our Test data set comprises 20 cases. With an accuracy above 99% on our cross-validation data, we can expect that very few, or none, of the test samples will be missclassified</p>
+<p>Running the prediction model on original Testing dataset using Random Forest algorithm to get the desired outputs for submission</p>
+<pre class="r"><code>finaloutput &lt;- predict(rfmodel, testing, type=&quot;class&quot;)</code></pre>
+<p>Preparing the files for submission</p>
+<pre class="r"><code>pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0(&quot;problem_id_&quot;,i,&quot;.txt&quot;)
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(finaloutput)</code></pre>
+</div>
 
 
 </div>

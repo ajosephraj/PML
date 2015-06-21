@@ -4,6 +4,7 @@ author: "Joseph Raj A"
 date: "Sunday, June 21, 2015"
 output: html_document
 ---
+#Setup with the installation
 Installed required packages like Caret, randomForest and rpart
 install.packages("caret")
 install.packages("randomForest")
@@ -20,6 +21,7 @@ Overall seed for reproduceability has been set
 set.seed(1234)
 ```
 
+#Data Access & Cleansing
 Accessing the given URL and saving both datasets as training and testing.
 ```{r}
 training_Url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
@@ -46,7 +48,7 @@ dim(training)
 dim(testing)
 ```
 
-Partioning the data 80% training 20% testing and lets plot to see how the data behaves.
+#Partioning the data 80% training 20% testing and predict to see how the data behaves.
 ```{r}
 samples <- createDataPartition(y=training$classe, p=0.80, list=FALSE)
 trainingset <- training[samples, ] 
@@ -59,7 +61,7 @@ dim(trainingset)
 dim(testingset)
 ```
 
-Applying the random Forest Algorithm on training dataset
+#Applying the random Forest Algorithm on training dataset
 ```{r}
 rfmodel <- randomForest(classe ~. , data=trainingset, method="class")
 ```
@@ -76,18 +78,16 @@ confusionMatrix(prediction, testingset$classe)
 
 #Decision
 
-##Accuracy for Random Forest model was 0.998 (95% CI: (0.996, 0.9991)). The expected out-of-sample error is estimated at 0.002, or 0.2%. The expected out-of-sample error is calculated as 1 - accuracy for predictions made against the cross-validation set. 
+Accuracy for Random Forest model was 0.998 (95% CI: (0.996, 0.9991)). The expected out-of-sample error is estimated at 0.002, or 0.2%. The expected out-of-sample error is calculated as 1 - accuracy for predictions made against the cross-validation set. 
 
-##Our Test data set comprises 20 cases. With an accuracy above 99% on our cross-validation data, we can expect that very few, or none, of the test samples will be missclassified
+Our Test data set comprises 20 cases. With an accuracy above 99% on our cross-validation data, we can expect that very few, or none, of the test samples will be missclassified
 
-##Running the prediction model on original Testing dataset using Random Forest algorithm to get the desired outputs for submission.
-
+Running the prediction model on original Testing dataset using Random Forest algorithm to get the desired outputs for submission
 ```{r}
 finaloutput <- predict(rfmodel, testing, type="class")
-finalOutput
 ```
 
-#Preparing the files for submission
+Preparing the files for submission
 ```{r}
 pml_write_files = function(x){
   n = length(x)
@@ -96,4 +96,8 @@ pml_write_files = function(x){
     write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
   }
 }
+
+pml_write_files(finaloutput)
 ```
+
+
